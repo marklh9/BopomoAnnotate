@@ -1,0 +1,4 @@
+﻿LibreOffice provide basic interface to annotate Asian phonetic guide. It breaks text into phrases for users to annotate phrase by phrase.
+
+BopomoAnnotate help users to annotate Mandarin phonetic symbol (Bopomo) for Chinese text. It annotates and looks up syllables for users and provide alternative syllables in context menu.
+
