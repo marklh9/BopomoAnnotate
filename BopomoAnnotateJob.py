@@ -168,7 +168,8 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
 
     def execute(self, args):
         try:
-            self.registerContextMenuInterceptor()
+            if self.doc.supportsService("com.sun.star.text.TextDocument"):
+                self.registerContextMenuInterceptor()
         except Exception as e:
             logException("execute()", e)
  
