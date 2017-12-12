@@ -43,16 +43,21 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         # Retrieve the desktop object
         self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
         self.doc = self.desktop.getCurrentComponent()
-        self.controller = self.doc.getCurrentController()
+
+    def controller( self ):
+        return self.doc.getCurrentController()
+
+    def cursor( self ):
+        return self.controller().getViewCursor()
 
     def notifyContextMenuExecute( self, aEvent ):
         try:
             xContextMenu = aEvent.ActionTriggerContainer
-            if hasSelection(self.doc.CurrentController.getSelection()):
+            if hasSelection(self.controller().getSelection()):
                 insertMenuItem( xContextMenu ,"標註注音符號",  "service:addons.whale.BopomoAnnotate.Job?marksel" )
                 return CONTINUE_MODIFIED
 
-            vc = self.controller.getViewCursor()
+            vc = self.cursor()
             if not vc.goRight(1, True):
                 return IGNORED
 
@@ -74,7 +79,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
 
     def registerContextMenuInterceptor(self):	
         try:
-            self.controller.registerContextMenuInterceptor(self)	
+            self.controller().registerContextMenuInterceptor(self)
         except Exception as e:
             logException("registerContextMenuInterceptor()", e)
 
@@ -149,13 +154,13 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                 oCursor.collapseToEnd()
 
     def markChar(self, sym):
-        vc = self.controller.getViewCursor()
+        vc = self.cursor()
         if vc.goRight(1, True):
             vc.RubyText = self.getSyllables(sym)
             vc.collapseToStart()
 
     def markSelectedText(self): 
-        selection = self.doc.CurrentController.getSelection()
+        selection = self.controller().getSelection()
         if not hasSelection(selection):
             return
 
