@@ -2,9 +2,7 @@
 <description xmlns="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
     <version value="2017.12.11.01"/>
     <identifier value="addons.whale.BopomoAnnotate"/>
-    <dependencies>
-		<OpenOffice.org-minimal-version value="3.0" d:name="OpenOffice.org 3.0"/>
-    </dependencies>
+        <dependencies/>
 	<display-name>
 		<name xml:lang="zh-TW">注音符號標註工具</name>
 		<name xml:lang="en-US">Bopomo Annotation Helper</name>
