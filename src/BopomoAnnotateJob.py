@@ -11,7 +11,7 @@ import sys
 import pickle
 import logging
 
-#logging.basicConfig(filename='c:\\workdir\\boan.txt',level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/bpm.txt',level=logging.DEBUG)
 
 def logException(name , e):
     logging.debug(name+"Exception " + str(type(e)) + " message " + str(e) + " args " + str(e.args))
