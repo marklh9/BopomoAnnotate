@@ -69,11 +69,25 @@ def hasSelection( selection ):
         return len(oneSel.getString()) > 0
     return True
 
+class BopomoLookup:
+    def __init__(self, location):
+        file = open(location,'rb')
+        self.dictionary = pickle.load(file)
+        file.close()
+
+    def one(self, ideograph):
+        return self.dictionary[ideograph][0]
+
+    def all(self, ideograph):
+        return self.dictionary[ideograph]
+
+
 class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuInterceptor):
     def __init__(self, ctx):
         # store the component context for later use
         self.ctx = ctx
-        self.dictionary = {}
+        self.lookup = BopomoLookup(
+            get_file_location(ctx, "addons.whale.BopomoAnnotate", "phtab.pkl" ) )
         # Retrieve the desktop object
         self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
 
@@ -97,14 +111,13 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             if not vc.goRight(1, True):
                 return IGNORED
 
-            dictionary = self.getDictionary()
             ch = ord(vc.getString())
             vc.collapseToStart()
 
             if not ( ch >= 0x4e00 and ch <= 0x9fff): 
                 return IGNORED
 
-            for sym in dictionary[ch]:
+            for sym in self.lookup.all( ch ):
                 text = "標註為" + get_syllable(sym)
                 command ="service:addons.whale.BopomoAnnotate.Job?markchar="+str(sym) 
                 insertMenuItem( xContextMenu ,text, command)
@@ -118,22 +131,6 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             self.controller().registerContextMenuInterceptor(self)
         except Exception as e:
             logException("registerContextMenuInterceptor()", e)
-
-    def getDictionary(self):
-        if not self.dictionary:
-            try:
-                logging.debug("Loading phtab.pkl")
-                package = "addons.whale.BopomoAnnotate"
-                filename = "phtab.pkl"
-                location = get_file_location(self.ctx, package, filename)
-
-                file = open(location,'rb')
-                self.dictionary = pickle.load(file)
-                file.close()
-            except Exception as e:
-                logException("getDictionary()", e)
-
-        return self.dictionary
 
 
     def mark_textrange(self, oneSel):
@@ -160,8 +157,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             while oCursor.goRight(1, True) and oText.compareRegionEnds(oCursor,oEnd) >= 0:
                 ch = ord(oCursor.String)
                 if ch >= 0x4e00 and ch <= 0x9fff:
-                    dictionary = self.getDictionary()
-                    oCursor.RubyText = get_syllable(dictionary[ ch][0])
+                    oCursor.RubyText = get_syllable( self.lookup.one( ch ) )
                 oCursor.collapseToEnd()
 
     def mark_char(self, sym):
