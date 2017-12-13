@@ -100,7 +100,8 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
 
         return self.dictionary
 
-    def markTextRange(self, oneSel ):
+
+    def mark_textrange(self, oneSel):
         if not oneSel.supportsService("com.sun.star.text.TextRange"):
             return
 
@@ -142,7 +143,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         undo = self.document().UndoManager
         undo.enterUndoContext("BopomoAnnotate")
         for i in range(selection.getCount()):
-            self.markTextRange(selection.getByIndex(i))
+            self.mark_textrange(selection.getByIndex(i))
 
         undo.leaveUndoContext()
 
