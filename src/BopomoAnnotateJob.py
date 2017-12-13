@@ -42,10 +42,12 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         self.dictionary = {}
         # Retrieve the desktop object
         self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
-        self.doc = self.desktop.getCurrentComponent()
+
+    def document(self):
+        return self.desktop.getCurrentComponent()
 
     def controller( self ):
-        return self.doc.getCurrentController()
+        return self.document().getCurrentController()
 
     def cursor( self ):
         return self.controller().getViewCursor()
@@ -164,7 +166,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         if not hasSelection(selection):
             return
 
-        undo = self.doc.UndoManager
+        undo = self.document().UndoManager
         undo.enterUndoContext("BopomoAnnotate")
         for i in range(selection.getCount()):
             self.markTextRange(selection.getByIndex(i))
@@ -173,7 +175,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
 
     def execute(self, args):
         try:
-            if self.doc.supportsService("com.sun.star.text.TextDocument"):
+            if self.document().supportsService("com.sun.star.text.TextDocument"):
                 self.registerContextMenuInterceptor()
         except Exception as e:
             logException("execute()", e)
