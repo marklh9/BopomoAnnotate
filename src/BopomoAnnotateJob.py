@@ -5,17 +5,17 @@ import unohelper
 from com.sun.star.task import XJob
 from com.sun.star.task import XJobExecutor
 from com.sun.star.ui import XContextMenuInterceptor
-from com.sun.star.ui.ContextMenuInterceptorAction import IGNORED,CANCELLED,EXECUTE_MODIFIED,CONTINUE_MODIFIED
+from com.sun.star.ui.ContextMenuInterceptorAction import IGNORED, CANCELLED, EXECUTE_MODIFIED, CONTINUE_MODIFIED
 
 import sys
 import pickle
 import logging
 
-logging.basicConfig(filename='/tmp/bpm.txt',level=logging.DEBUG)
+logging.basicConfig(filename='/tmp/bpm.txt', level=logging.DEBUG)
 
 
-def logException(name , e):
-    logging.debug(name+"Exception " + str(type(e)) + " message " + str(e) + " args " + str(e.args))
+def logException(name, e):
+    logging.debug(name + "Exception " + str(type(e)) + " message " + str(e) + " args " + str(e.args))
 
 
 def get_file_location(ctx, package, filename):
@@ -23,40 +23,43 @@ def get_file_location(ctx, package, filename):
     url = pip.getPackageLocation(package) + "/" + filename
     return unohelper.fileUrlToSystemPath(url)
 
+
 def get_syllable(ch):
-    #5bit
-    InitialConsonants= "ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"
-    #2bit
-    Medials="ㄧㄨㄩ"
-    #4bit
-    FinalConsonants="ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ"
-    #3bit
-    Tones="ˊˇˋ˙"
+    # 5bit
+    InitialConsonants = "ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"
+    # 2bit
+    Medials = "ㄧㄨㄩ"
+    # 4bit
+    FinalConsonants = "ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ"
+    # 3bit
+    Tones = "ˊˇˋ˙"
     ic = ch & 0b11111
-    m = ( ch >> 5 ) & 0b11
-    fc = ( ch >> 7) & 0b1111
+    m = (ch >> 5) & 0b11
+    fc = (ch >> 7) & 0b1111
     t = (ch >> 11) & 0b111
     s = ''
-    #print("%d %d %d %d" % (ic,m,fc,t))
-    if t==4:
+    # print("%d %d %d %d" % (ic,m,fc,t))
+    if t == 4:
         s += Tones[3];
-    if ic!=0 and ic<=len(InitialConsonants):
-        s += InitialConsonants[ic-1]
-    if m!=0 and m<=len(Medials):
-        s += Medials[m-1]
-    if fc!=0 and fc<=len(FinalConsonants):
-        s += FinalConsonants[fc-1]
-    if t!=0 and t<=len(Tones)-1:
-        s += Tones[t-1]
+    if ic != 0 and ic <= len(InitialConsonants):
+        s += InitialConsonants[ic - 1]
+    if m != 0 and m <= len(Medials):
+        s += Medials[m - 1]
+    if fc != 0 and fc <= len(FinalConsonants):
+        s += FinalConsonants[fc - 1]
+    if t != 0 and t <= len(Tones) - 1:
+        s += Tones[t - 1]
     return s
 
-def insertMenuItem( menu, text, command ):
-    xRootMenuEntry = menu.createInstance ( "com.sun.star.ui.ActionTrigger" )
-    xRootMenuEntry.setPropertyValue( "Text",  text )
-    xRootMenuEntry.setPropertyValue( "CommandURL",  command )
-    menu.insertByIndex ( 0, xRootMenuEntry )
 
-def hasSelection( selection ):
+def insertMenuItem(menu, text, command):
+    xRootMenuEntry = menu.createInstance("com.sun.star.ui.ActionTrigger")
+    xRootMenuEntry.setPropertyValue("Text", text)
+    xRootMenuEntry.setPropertyValue("CommandURL", command)
+    menu.insertByIndex(0, xRootMenuEntry)
+
+
+def hasSelection(selection):
     if selection is None:
         return False
     if not selection.supportsService("com.sun.star.text.TextRanges"):
@@ -69,9 +72,10 @@ def hasSelection( selection ):
         return len(oneSel.getString()) > 0
     return True
 
+
 class BopomoLookup:
     def __init__(self, location):
-        file = open(location,'rb')
+        file = open(location, 'rb')
         self.dictionary = pickle.load(file)
         file.close()
 
@@ -82,29 +86,29 @@ class BopomoLookup:
         return self.dictionary[ideograph]
 
 
-class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuInterceptor):
+class BopomoAnnotateJob(unohelper.Base, XJobExecutor, XJob, XContextMenuInterceptor):
     def __init__(self, ctx):
         # store the component context for later use
         self.ctx = ctx
         self.lookup = BopomoLookup(
-            get_file_location(ctx, "addons.whale.BopomoAnnotate", "phtab.pkl" ) )
+            get_file_location(ctx, "addons.whale.BopomoAnnotate", "phtab.pkl"))
         # Retrieve the desktop object
         self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
 
     def document(self):
         return self.desktop.getCurrentComponent()
 
-    def controller( self ):
+    def controller(self):
         return self.document().getCurrentController()
 
-    def cursor( self ):
+    def cursor(self):
         return self.controller().getViewCursor()
 
-    def notifyContextMenuExecute( self, aEvent ):
+    def notifyContextMenuExecute(self, aEvent):
         try:
             xContextMenu = aEvent.ActionTriggerContainer
             if hasSelection(self.controller().getSelection()):
-                insertMenuItem( xContextMenu ,"標註注音符號",  "service:addons.whale.BopomoAnnotate.Job?marksel" )
+                insertMenuItem(xContextMenu, "標註注音符號", "service:addons.whale.BopomoAnnotate.Job?marksel")
                 return CONTINUE_MODIFIED
 
             vc = self.cursor()
@@ -114,24 +118,23 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             ch = ord(vc.getString())
             vc.collapseToStart()
 
-            if not ( ch >= 0x4e00 and ch <= 0x9fff): 
+            if not (ch >= 0x4e00 and ch <= 0x9fff):
                 return IGNORED
 
-            for sym in self.lookup.all( ch ):
+            for sym in self.lookup.all(ch):
                 text = "標註為" + get_syllable(sym)
-                command ="service:addons.whale.BopomoAnnotate.Job?markchar="+str(sym) 
-                insertMenuItem( xContextMenu ,text, command)
+                command = "service:addons.whale.BopomoAnnotate.Job?markchar=" + str(sym)
+                insertMenuItem(xContextMenu, text, command)
         except Exception as e:
             logException("notifyContextMenuExecute()", e)
             return CONTINUE_MODIFIED
         return CONTINUE_MODIFIED
 
-    def registerContextMenuInterceptor(self):	
+    def registerContextMenuInterceptor(self):
         try:
             self.controller().registerContextMenuInterceptor(self)
         except Exception as e:
             logException("registerContextMenuInterceptor()", e)
-
 
     def mark_textrange(self, oneSel):
         if not oneSel.supportsService("com.sun.star.text.TextRange"):
@@ -144,20 +147,20 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             if not oPara.supportsService("com.sun.star.text.Paragraph"):
                 continue
             oCursor = oText.createTextCursorByRange(oneSel.getStart())
-            if oText.compareRegionStarts(oPara,oneSel)>0:
+            if oText.compareRegionStarts(oPara, oneSel) > 0:
                 oCursor = oText.createTextCursorByRange(oneSel.getStart())
             else:
                 oCursor = oText.createTextCursorByRange(oPara.getStart())
 
-            if oText.compareRegionEnds(oPara,oneSel) <0:
+            if oText.compareRegionEnds(oPara, oneSel) < 0:
                 oEnd = oText.createTextCursorByRange(oneSel.getEnd())
             else:
                 oEnd = oText.createTextCursorByRange(oPara.getEnd())
 
-            while oCursor.goRight(1, True) and oText.compareRegionEnds(oCursor,oEnd) >= 0:
+            while oCursor.goRight(1, True) and oText.compareRegionEnds(oCursor, oEnd) >= 0:
                 ch = ord(oCursor.String)
                 if ch >= 0x4e00 and ch <= 0x9fff:
-                    oCursor.RubyText = get_syllable( self.lookup.one( ch ) )
+                    oCursor.RubyText = get_syllable(self.lookup.one(ch))
                 oCursor.collapseToEnd()
 
     def mark_char(self, sym):
@@ -184,11 +187,11 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                 self.registerContextMenuInterceptor()
         except Exception as e:
             logException("execute()", e)
- 
+
     def trigger(self, args):
         try:
-        # Retrieve the desktop object
-            if args.startswith( "marksel" ):
+            # Retrieve the desktop object
+            if args.startswith("marksel"):
                 self.mark_selected_text()
             elif args.startswith("markchar="):
                 self.mark_char(int(args.split("=")[1]))
@@ -198,11 +201,10 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
             logException("trigger()", e)
 
 
-
 # pythonloader looks for a static g_ImplementationHelper variable
 g_ImplementationHelper = unohelper.ImplementationHelper()
 
 g_ImplementationHelper.addImplementation( \
-        BopomoAnnotateJob,                            # UNO object class
-        "addons.whale.BopomoAnnotate.Job",                   # Implementation name
-        ("com.sun.star.task.Job",),)                  # List of implemented services
+    BopomoAnnotateJob,  # UNO object class
+    "addons.whale.BopomoAnnotate.Job",  # Implementation name
+    ("com.sun.star.task.Job",), )  # List of implemented services
