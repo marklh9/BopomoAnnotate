@@ -71,7 +71,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                 return IGNORED
 
             for sym in dictionary[ch]:
-                text = "標註為"+self.getSyllables(sym)
+                text = "標註為" + get_syllable(sym)
                 command ="service:addons.whale.BopomoAnnotate.Job?markchar="+str(sym) 
                 insertMenuItem( xContextMenu ,text, command)
         except Exception as e:
@@ -100,33 +100,6 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
 
         return self.dictionary
 
-    def getSyllables(self, ch):
-        #5bit
-        InitialConsonants= "ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"
-        #2bit
-        Medials="ㄧㄨㄩ"
-        #4bit
-        FinalConsonants="ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ"
-        #3bit
-        Tones="ˊˇˋ˙"
-        ic = ch & 0b11111
-        m = ( ch >> 5 ) & 0b11
-        fc = ( ch >> 7) & 0b1111
-        t = (ch >> 11) & 0b111
-        s = ''
-        #print("%d %d %d %d" % (ic,m,fc,t))
-        if t==4:
-            s += Tones[3];
-        if ic!=0 and ic<=len(InitialConsonants):
-            s += InitialConsonants[ic-1]
-        if m!=0 and m<=len(Medials):
-            s += Medials[m-1]        
-        if fc!=0 and fc<=len(FinalConsonants):
-            s += FinalConsonants[fc-1]
-        if t!=0 and t<=len(Tones)-1:
-            s += Tones[t-1]    
-        return s
-
     def markTextRange(self, oneSel ):
         if not oneSel.supportsService("com.sun.star.text.TextRange"):
             return
@@ -152,13 +125,13 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                 ch = ord(oCursor.String)
                 if ch >= 0x4e00 and ch <= 0x9fff:
                     dictionary = self.getDictionary()
-                    oCursor.RubyText = self.getSyllables(dictionary[ ch ][0] )
+                    oCursor.RubyText = get_syllable(dictionary[ ch][0])
                 oCursor.collapseToEnd()
 
     def markChar(self, sym):
         vc = self.cursor()
         if vc.goRight(1, True):
-            vc.RubyText = self.getSyllables(sym)
+            vc.RubyText = get_syllable(sym)
             vc.collapseToStart()
 
     def markSelectedText(self): 
@@ -191,6 +164,34 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                 logging.debug("trigger() other")
         except Exception as e:
             logException("trigger()", e)
+
+
+def get_syllable(ch):
+    #5bit
+    InitialConsonants= "ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙ"
+    #2bit
+    Medials="ㄧㄨㄩ"
+    #4bit
+    FinalConsonants="ㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦ"
+    #3bit
+    Tones="ˊˇˋ˙"
+    ic = ch & 0b11111
+    m = ( ch >> 5 ) & 0b11
+    fc = ( ch >> 7) & 0b1111
+    t = (ch >> 11) & 0b111
+    s = ''
+    #print("%d %d %d %d" % (ic,m,fc,t))
+    if t==4:
+        s += Tones[3];
+    if ic!=0 and ic<=len(InitialConsonants):
+        s += InitialConsonants[ic-1]
+    if m!=0 and m<=len(Medials):
+        s += Medials[m-1]
+    if fc!=0 and fc<=len(FinalConsonants):
+        s += FinalConsonants[fc-1]
+    if t!=0 and t<=len(Tones)-1:
+        s += Tones[t-1]
+    return s
 
 
 # pythonloader looks for a static g_ImplementationHelper variable
