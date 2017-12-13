@@ -104,6 +104,14 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor, XJob, XContextMenuIntercep
     def cursor(self):
         return self.controller().getViewCursor()
 
+    def next_char(self):
+        vc = self.cursor()
+        if not vc.goRight(1, True):
+            return 0
+
+        vc.collapseToStart()
+        return ord(vc.getString())
+
     def notifyContextMenuExecute(self, aEvent):
         try:
             xContextMenu = aEvent.ActionTriggerContainer
@@ -111,12 +119,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor, XJob, XContextMenuIntercep
                 insertMenuItem(xContextMenu, "標註注音符號", "service:addons.whale.BopomoAnnotate.Job?marksel")
                 return CONTINUE_MODIFIED
 
-            vc = self.cursor()
-            if not vc.goRight(1, True):
-                return IGNORED
-
-            ch = ord(vc.getString())
-            vc.collapseToStart()
+            ch = self.next_char()
 
             if not (ch >= 0x4e00 and ch <= 0x9fff):
                 return IGNORED
