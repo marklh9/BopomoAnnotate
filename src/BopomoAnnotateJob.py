@@ -129,13 +129,13 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
                     oCursor.RubyText = get_syllable(dictionary[ ch][0])
                 oCursor.collapseToEnd()
 
-    def markChar(self, sym):
+    def mark_char(self, sym):
         vc = self.cursor()
         if vc.goRight(1, True):
             vc.RubyText = get_syllable(sym)
             vc.collapseToStart()
 
-    def markSelectedText(self): 
+    def mark_selected_text(self):
         selection = self.controller().getSelection()
         if not hasSelection(selection):
             return
@@ -158,9 +158,9 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         try:
         # Retrieve the desktop object
             if args.startswith( "marksel" ):
-                self.markSelectedText()
+                self.mark_selected_text()
             elif args.startswith("markchar="):
-                self.markChar(int(args.split("=")[1]))
+                self.mark_char(int(args.split("=")[1]))
             else:
                 logging.debug("trigger() other")
         except Exception as e:
