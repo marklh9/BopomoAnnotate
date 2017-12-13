@@ -13,8 +13,16 @@ import logging
 
 logging.basicConfig(filename='/tmp/bpm.txt',level=logging.DEBUG)
 
+
 def logException(name , e):
     logging.debug(name+"Exception " + str(type(e)) + " message " + str(e) + " args " + str(e.args))
+
+
+def get_file_location(ctx, package, filename):
+    pip = ctx.getByName("/singletons/com.sun.star.deployment.PackageInformationProvider")
+    url = pip.getPackageLocation(package) + "/" + filename
+    return unohelper.fileUrlToSystemPath(url)
+
 
 def insertMenuItem( menu, text, command ):
     xRootMenuEntry = menu.createInstance ( "com.sun.star.ui.ActionTrigger" )
@@ -89,10 +97,11 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor,XJob,XContextMenuIntercepto
         if not self.dictionary:
             try:
                 logging.debug("Loading phtab.pkl")
-                pip = self.ctx.getByName("/singletons/com.sun.star.deployment.PackageInformationProvider")
-                url = pip.getPackageLocation("addons.whale.BopomoAnnotate") + "/phtab.pkl"
-                loc = unohelper.fileUrlToSystemPath(url)
-                file = open(loc,'rb')                
+                package = "addons.whale.BopomoAnnotate"
+                filename = "phtab.pkl"
+                location = get_file_location(self.ctx, package, filename)
+
+                file = open(location,'rb')
                 self.dictionary = pickle.load(file)
                 file.close()
             except Exception as e:
