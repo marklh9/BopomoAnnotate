@@ -30,15 +30,17 @@ def get_syllable(ch):
 
 
 class BopomoLookup:
+    dictionary = None
+
     def __init__(self, location):
         file = open(location, 'rb')
-        self.dictionary = pickle.load(file)
+        if BopomoLookup.dictionary is None:
+            BopomoLookup.dictionary = pickle.load(file)
         file.close()
 
     def one(self, ideograph):
-        return self.dictionary[ideograph][0]
+        return BopomoLookup.dictionary[ideograph][0]
 
     def all(self, ideograph):
-        return self.dictionary[ideograph]
-
+        return BopomoLookup.dictionary[ideograph]
 

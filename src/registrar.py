@@ -1,12 +1,13 @@
 import uno
 import unohelper
-from lookup import get_syllable
 
 from com.sun.star.task import XJob
 from com.sun.star.ui import XContextMenuInterceptor
 from com.sun.star.ui.ContextMenuInterceptorAction import IGNORED, CANCELLED, EXECUTE_MODIFIED, CONTINUE_MODIFIED
 
 from myhelper import MyUnoHelper
+from lookup import BopomoLookup
+from lookup import get_syllable
 
 import logging
 
@@ -20,6 +21,8 @@ def insertMenuItem(menu, text, command):
 class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
     def __init__(self, helper):
         self.helper = helper
+        filepath = helper.get_package_file( "addons.whale.BopomoAnnotate", "phtab.pkl" )
+        self.lookup = BopomoLookup( filepath )
 
     def insert_menuitem_mark_selected(self, xContextMenu):
         insertMenuItem(xContextMenu, "標註注音符號",
@@ -33,11 +36,6 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
             insertMenuItem(xContextMenu, text, command)
         return CONTINUE_MODIFIED
 
-    def insert_menuitem_mark_char_x(self, xContextMenu, ch):
-        insertMenuItem(xContextMenu, "標註為abc",
-                       "service:addons.whale.BopomoAnnotate.Job?markchar=abc" )
-        return CONTINUE_MODIFIED
-
     def notifyContextMenuExecute(self, aEvent):
         xContextMenu = aEvent.ActionTriggerContainer
         if self.helper.has_text_selection():
@@ -45,7 +43,7 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
 
         ch = self.helper.next_char()
         if ch >= 0x4e00 and ch <= 0x9fff:
-            return self.insert_menuitem_mark_char_x(xContextMenu, ch)
+            return self.insert_menuitem_mark_char(xContextMenu, ch)
 
         return IGNORED
 
