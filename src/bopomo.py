@@ -7,6 +7,7 @@ import logging
 
 from lookup import BopomoLookup
 from lookup import get_syllable
+from myhelper import MyUnoHelper
 
 logging.basicConfig(filename='/tmp/bpm.txt', level=logging.DEBUG)
 
@@ -15,52 +16,16 @@ def logException(name, e):
     logging.debug(name + "Exception " + str(type(e)) + " message " + str(e) + " args " + str(e.args))
 
 
-def get_file_location(ctx, package, filename):
-    pip = ctx.getByName("/singletons/com.sun.star.deployment.PackageInformationProvider")
-    url = pip.getPackageLocation(package) + "/" + filename
-    return unohelper.fileUrlToSystemPath(url)
-
-
-def hasSelection(selection):
-    if selection is None:
-        return False
-    if not selection.supportsService("com.sun.star.text.TextRanges"):
-        return False
-    count = selection.getCount()
-    if count == 0:
-        return False
-    if count == 1:
-        oneSel = selection.getByIndex(0)
-        return len(oneSel.getString()) > 0
-    return True
-
-
 
 class BopomoAnnotateJob(unohelper.Base, XJobExecutor):
     def __init__(self, ctx):
         # store the component context for later use
         self.ctx = ctx
-        self.lookup = BopomoLookup(
-            get_file_location(ctx, "addons.whale.BopomoAnnotate", "phtab.pkl"))
-        # Retrieve the desktop object
-        self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
+        filepath = MyUnoHelper( ctx ).get_package_file( "addons.whale.BopomoAnnotate", "phtab.pkl" )
+        self.lookup = BopomoLookup( filepath )
 
-    def document(self):
-        return self.desktop.getCurrentComponent()
-
-    def controller(self):
-        return self.document().getCurrentController()
-
-    def cursor(self):
-        return self.controller().getViewCursor()
-
-    def next_char(self):
-        vc = self.cursor()
-        if not vc.goRight(1, True):
-            return 0
-
-        vc.collapseToStart()
-        return ord(vc.getString())
+    def lookup_one(self,ch):
+        return self.lookup.one(ch)
 
     def mark_textrange(self, oneSel):
         if not oneSel.supportsService("com.sun.star.text.TextRange"):
@@ -90,18 +55,18 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor):
                 oCursor.collapseToEnd()
 
     def mark_char(self, sym):
-        vc = self.cursor()
+        vc = self.helper.cursor()
         if vc.goRight(1, True):
             vc.RubyText = get_syllable(sym)
             vc.collapseToStart()
 
     def mark_selected_text(self):
-        selection = self.controller().getSelection()
-        if not hasSelection(selection):
+        if not self.helper.has_text_selection():
             return
-
-        undo = self.document().UndoManager
+        selection = self.helper.controller().getSelection()
+        undo = self.helper.undomanager()
         undo.enterUndoContext("BopomoAnnotate")
+
         for i in range(selection.getCount()):
             self.mark_textrange(selection.getByIndex(i))
 
@@ -109,6 +74,7 @@ class BopomoAnnotateJob(unohelper.Base, XJobExecutor):
 
     def trigger(self, args):
         try:
+            self.helper = MyUnoHelper( self.ctx )
             # Retrieve the desktop object
             if args.startswith("marksel"):
                 self.mark_selected_text()
