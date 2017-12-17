@@ -8,15 +8,17 @@ from com.sun.star.ui.ContextMenuInterceptorAction import IGNORED, CANCELLED, EXE
 from myhelper import MyUnoHelper
 from lookup import BopomoLookup
 from lookup import get_syllable
+from myhelper import access_by_name
 
 import logging
+
+#logging.basicConfig(filename='/tmp/bpm.txt', level=logging.DEBUG)
 
 def insertMenuItem(menu, text, command):
     xRootMenuEntry = menu.createInstance("com.sun.star.ui.ActionTrigger")
     xRootMenuEntry.setPropertyValue("Text", text)
     xRootMenuEntry.setPropertyValue("CommandURL", command)
     menu.insertByIndex(0, xRootMenuEntry)
-
 
 class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
     def __init__(self, helper):
@@ -52,7 +54,19 @@ class BopomoAnnotateRegistrar(unohelper.Base, XJob):
         self.ctx = ctx
 
     def execute(self, args):
-        helper = MyUnoHelper(self.ctx)
+        try:
+            self.do_execute(args)
+
+        except Exception as e:
+            logging.debug("execute exception="+str(e))
+
+    def do_execute(self, args):
+        environment = access_by_name( args, "Environment" )
+        model = None
+        if environment:
+            model = access_by_name( environment, "Model" )
+
+        helper = MyUnoHelper(self.ctx, model)
         interceptor = BopomoContextMenuInterceptor( helper )
         if helper.is_text_document() and helper.controller():
             helper.controller().registerContextMenuInterceptor(interceptor)

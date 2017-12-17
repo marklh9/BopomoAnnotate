@@ -1,12 +1,23 @@
 import uno
 import unohelper
 
+def access_by_name(tuple, name):
+    for item in tuple:
+        if item.Name == name:
+            return item.Value
+    return None
+
+
 class MyUnoHelper:
-    def __init__(self, ctx):
+    def __init__(self, ctx, model = None):
         self.ctx = ctx
         self.desktop = self.ctx.ServiceManager.createInstanceWithContext("com.sun.star.frame.Desktop", self.ctx)
+        self.model = model
 
     def document(self):
+        if self.model:
+            return self.model
+
         return self.desktop.getCurrentComponent()
 
     def controller(self):
