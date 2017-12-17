@@ -1,6 +1,6 @@
 import uno
 import unohelper
-import lookup
+from lookup import get_syllable
 
 from com.sun.star.task import XJob
 from com.sun.star.ui import XContextMenuInterceptor
@@ -31,7 +31,7 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
 
     def insert_menuitem_mark_char(self, xContextMenu, ch):
         for sym in self.lookup.all(ch):
-            text = "標註為" + lookup.get_syllable(sym)
+            text = "標註為" + get_syllable(sym)
             command = "service:addons.whale.BopomoAnnotate.Job?markchar=" + str(sym)
             insertMenuItem(xContextMenu, text, command)
         return CONTINUE_MODIFIED
@@ -42,7 +42,7 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
             return self.insert_menuitem_mark_selected(xContextMenu)
 
         ch = self.next_char()
-        if not (ch >= 0x4e00 and ch <= 0x9fff):
+        if ch >= 0x4e00 and ch <= 0x9fff:
             return self.insert_menuitem_mark_char(xContextMenu, ch)
 
         return IGNORED
