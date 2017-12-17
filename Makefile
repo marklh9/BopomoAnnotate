@@ -17,7 +17,7 @@ test: install
 bopomo.oxt: $(SRC)
 	cd src && zip -r ../bopomo.oxt *
 
-src/description.xml: bopomo.py
+src/description.xml: $(SRC)
 	sed -i 's/<version value="[^"]*"/<version value="'$(VER)'"/' $@
 
 .PHONY: install test
