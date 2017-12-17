@@ -30,4 +30,8 @@ class MyUnoHelper:
 
         return False
 
+    def get_package_file(self, package, filename):
+        pip = self.ctx.getByName("/singletons/com.sun.star.deployment.PackageInformationProvider")
+        url = pip.getPackageLocation(package) + "/" + filename
+        return unohelper.fileUrlToSystemPath(url)
 
