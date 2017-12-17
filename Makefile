@@ -1,4 +1,4 @@
-SRC= bopomo.py registrar.py
+SRC= annotate.py registrar.py
 SRC+=pythonpath/myhelper.py
 SRC+=Addons.xcu Jobs.xcu
 SRC+=description.xml description_en-US.txt description_zh-TW.txt license.txt
