@@ -9,7 +9,7 @@ from lookup import BopomoLookup
 from lookup import get_syllable
 from myhelper import MyUnoHelper
 
-logging.basicConfig(filename='/tmp/bpm.txt', level=logging.DEBUG)
+#logging.basicConfig(filename='/tmp/bpm.txt', level=logging.DEBUG)
 
 
 def logException(name, e):
