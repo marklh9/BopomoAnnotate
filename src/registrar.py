@@ -54,7 +54,7 @@ class BopomoAnnotateRegistrar(unohelper.Base, XJob):
     def execute(self, args):
         helper = MyUnoHelper(self.ctx)
         interceptor = BopomoContextMenuInterceptor( helper )
-        if helper.document().supportsService("com.sun.star.text.TextDocument"):
+        if helper.is_text_document() and helper.controller():
             helper.controller().registerContextMenuInterceptor(interceptor)
 
 

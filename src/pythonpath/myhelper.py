@@ -44,3 +44,6 @@ class MyUnoHelper:
         vc.collapseToStart()
         return ch
 
+    def is_text_document(self):
+        return self.document() and self.document().supportsService("com.sun.star.text.TextDocument")
+
