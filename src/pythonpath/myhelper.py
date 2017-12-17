@@ -35,3 +35,12 @@ class MyUnoHelper:
         url = pip.getPackageLocation(package) + "/" + filename
         return unohelper.fileUrlToSystemPath(url)
 
+    def next_char(self):
+        vc = self.cursor()
+        ch = 0
+        if vc.goRight(1, True) and len(vc.getString())>0:
+            ch = ord(vc.getString())
+
+        vc.collapseToStart()
+        return ch
+

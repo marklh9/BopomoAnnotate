@@ -21,9 +21,6 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
     def __init__(self, helper):
         self.helper = helper
 
-    def next_char(self):
-        return 0
-
     def insert_menuitem_mark_selected(self, xContextMenu):
         insertMenuItem(xContextMenu, "標註注音符號",
                        "service:addons.whale.BopomoAnnotate.Job?marksel")
@@ -36,14 +33,19 @@ class BopomoContextMenuInterceptor(unohelper.Base, XContextMenuInterceptor):
             insertMenuItem(xContextMenu, text, command)
         return CONTINUE_MODIFIED
 
+    def insert_menuitem_mark_char_x(self, xContextMenu, ch):
+        insertMenuItem(xContextMenu, "標註為abc",
+                       "service:addons.whale.BopomoAnnotate.Job?markchar=abc" )
+        return CONTINUE_MODIFIED
+
     def notifyContextMenuExecute(self, aEvent):
         xContextMenu = aEvent.ActionTriggerContainer
         if self.helper.has_text_selection():
             return self.insert_menuitem_mark_selected(xContextMenu)
 
-        ch = self.next_char()
+        ch = self.helper.next_char()
         if ch >= 0x4e00 and ch <= 0x9fff:
-            return self.insert_menuitem_mark_char(xContextMenu, ch)
+            return self.insert_menuitem_mark_char_x(xContextMenu, ch)
 
         return IGNORED
 
