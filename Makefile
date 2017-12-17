@@ -1,6 +1,11 @@
-SRC= bopomo.py Addons.xcu Jobs.xcu description.xml \
-description_en-US.txt description_zh-TW.txt license.txt phtab.pkl tool.png \
-META-INF/manifest.xml
+SRC= bopomo.py registrar.py
+SRC+=pythonpath/myhelper.py
+SRC+=Addons.xcu Jobs.xcu
+SRC+=description.xml description_en-US.txt description_zh-TW.txt license.txt
+SRC+=phtab.pkl
+SRC+=tool.png
+SRC+=META-INF/manifest.xml
+
 VER=v$(shell expr `date +%y` - 7)$(shell date +%m.%d%H%M)
 
 install: bopomo.oxt
