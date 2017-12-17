@@ -7,7 +7,7 @@ oor:package="org.openoffice.Office">
 <node oor:name="Jobs">
    <node oor:name="RegisterBopomoContextMenu" oor:op="replace">
       <prop oor:name="Service">
-         <value>addons.whale.BopomoAnnotate.Job</value>
+         <value>addons.whale.BopomoAnnotate.Registrar</value>
       </prop>
    </node>
 </node>
