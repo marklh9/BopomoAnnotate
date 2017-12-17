@@ -7,7 +7,7 @@ install: bopomo.oxt
 	unopkg add -f bopomo.oxt
 
 test: install
-	soffice --writer --norestore
+	soffice --writer --norestore sample.fodt
 
 bopomo.oxt: $(SRC)
 	cd src && zip -r ../bopomo.oxt *
